@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,7 @@ namespace Nop.Web.Controllers
         private readonly AppSettings _appSettings;
         private readonly IInstallationLocalizationService _locService;
         private readonly INopFileProvider _fileProvider;
+        private readonly IUploadService _uploadService;
 
         #endregion
 
@@ -33,11 +35,13 @@ namespace Nop.Web.Controllers
 
         public InstallController(AppSettings appSettings,
             IInstallationLocalizationService locService,
-            INopFileProvider fileProvider)
+            INopFileProvider fileProvider,
+            IUploadService uploadService)
         {
             _appSettings = appSettings;
             _locService = locService;
             _fileProvider = fileProvider;
+            _uploadService = uploadService;
         }
 
         #endregion
@@ -53,6 +57,7 @@ namespace Nop.Web.Controllers
             {
                 AdminEmail = "admin@yourStore.com",
                 InstallSampleData = false,
+                InstallRegionalResources = false,
 
                 //fast installation service does not support SQL compact
                 DisableSampleDataOption = _appSettings.InstallationConfig.DisableSampleData,
@@ -79,6 +84,17 @@ namespace Nop.Web.Controllers
                     Selected = _locService.GetCurrentLanguage().Code == lang.Code
                 });
             }
+
+            model.AvailableCountries.AddRange(
+                CultureInfo.GetCultures(CultureTypes.SpecificCultures)
+                    .OrderBy(cultureInfo => new RegionInfo(cultureInfo.Name).DisplayName)
+                    .Where(cultureInfo => cultureInfo.TwoLetterISOLanguageName.Count() == 2)
+                    .Select(cultureInfo => new SelectListItem
+                    {
+                        Value = cultureInfo.Name,
+                        Text = $"{new RegionInfo(cultureInfo.Name).DisplayName} ({cultureInfo.IetfLanguageTag})"
+                    })
+            );
 
             return View(model);
         }
@@ -177,7 +193,16 @@ namespace Nop.Web.Controllers
 
                 //now resolve installation service
                 var installationService = EngineContext.Current.Resolve<IInstallationService>();
-                installationService.InstallRequiredData(model.AdminEmail, model.AdminPassword);
+
+                installationService.InstallRequiredData(model.AdminEmail, model.AdminPassword,
+                    model.InstallRegionalResources ? new RegionInfo(model.Country) : null,
+                    model.InstallRegionalResources ? new CultureInfo(model.Country) : null);
+
+                if (model.InstallRegionalResources)
+                {
+                    //upload CLDR
+                    _uploadService.UploadLocalePattern(new CultureInfo(model.Country));
+                }
 
                 if (model.InstallSampleData)
                     installationService.InstallSampleData(model.AdminEmail);

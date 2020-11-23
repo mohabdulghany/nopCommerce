@@ -77,8 +77,11 @@
 
                         $("input:checkbox[name=UseCustomCollation]").click(toggleCollation);
 
+                        $("input:checkbox[name=InstallRegionalResources]").click(toggleInstallRegionalResources);
+
                         toggleSqlConnectionInfo();
                         toggleCollation();
+                        toggleInstallRegionalResources();
                     });
 
                     $(document).ready(function () {
@@ -115,6 +118,12 @@
                         } else {
                             collationInput.hide();
                         }
+                    }
+
+                    function toggleInstallRegionalResources() {
+                        var installRegionalResources = $("#@Html.IdFor(x => x.InstallRegionalResources)").is(':checked');
+                        var regionalResourcesInput = $("#regionalResources");
+                        installRegionalResources ? regionalResourcesInput.show() : regionalResourcesInput.hide();
                     }
 
                     @if (!string.IsNullOrEmpty(Model.RestartUrl))
@@ -166,6 +175,25 @@
                                     <input asp-for="ConfirmPassword" class="form-control" />
                                 </div>
                             </div>
+                            <div class="form-group row">
+                                <div class="col-md-6 offset-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" asp-for="InstallRegionalResources" />
+                                        <label class="form-check-label" for="@Html.IdFor(m => m.InstallRegionalResources)">                                                
+                                            @ILS.GetResource("InstallRegionalResources")
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row" id="regionalResources">
+                                <label class="col-sm-3 col-form-label text-right font-weight-bold">
+                                    @ILS.GetResource("Country")
+                                </label>
+                                <div class="col-sm-8">
+                                    <nop-select asp-for="Country" asp-items="Model.AvailableCountries" />
+                                </div>
+                            </div>
+
                             @if (!Model.DisableSampleDataOption)
                             {
                                 <div class="form-group row">

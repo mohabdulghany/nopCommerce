@@ -1,4 +1,5 @@
-﻿using Nop.Core.Caching;
+﻿using System.Globalization;
+using Nop.Core.Caching;
 
 namespace Nop.Services.Common
 {
@@ -72,7 +73,7 @@ namespace Nop.Services.Common
         /// <summary>
         /// Gets a path to the localization client-side validation 
         /// </summary>
-        public static string LocalePatternPath => "lib\\cldr-data\\main\\{0}";
+        public static string LocalePatternPath => "lib_npm\\cldr-data\\main\\{0}";
 
         /// <summary>
         /// Gets a name of the archive with localization of templates
@@ -83,6 +84,21 @@ namespace Nop.Services.Common
         /// Gets a name of the default pattern locale
         /// </summary>
         public static string DefaultLocalePattern => "en";
+
+        /// <summary>
+        /// Gets default CultureInfo 
+        /// </summary>
+        public static CultureInfo DefaultLanguageCulture => new CultureInfo("en-US");
+
+        /// <summary>
+        /// Gets a path to download language pack (XML file)
+        /// </summary>
+        /// <remarks>
+        /// {0} : version name
+        /// {1} : language culture
+        /// Example: https://downloads.nopcommerce.com/languagepacks/origin/localization_nopCommerce-4.30/lang/ru-RU/language_pack.ru-RU.xml
+        /// </remarks>
+        public static string LanguagePacksDownloadPath => "https://downloads.nopcommerce.com/languagepacks/origin/localization_nopCommerce-{0}/lang/{1}/language_pack.{1}.xml";
 
         #endregion
 
