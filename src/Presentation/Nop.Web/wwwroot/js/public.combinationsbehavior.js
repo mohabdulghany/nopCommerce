@@ -50,6 +50,7 @@
 
             self.normalizeSelection(firstAttribute.id);
             self.processCombinations();
+            self.normalizeSelection(firstAttribute.id);
           }
         },
         error: function () {
