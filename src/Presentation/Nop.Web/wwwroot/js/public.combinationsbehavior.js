@@ -48,7 +48,7 @@
           if (selectedAttributes && selectedAttributes.length > 0) {
             var firstAttribute = selectedAttributes[0];
 
-            self.normalizeSelection(firstAttribute.id);
+            self.normalizeSelection();
             self.processCombinations();
             self.normalizeSelection(firstAttribute.id);
           }
@@ -59,23 +59,24 @@
       });
     },
 
-    normalizeSelection: function (selectedAttributeId) {
-      if (!selectedAttributeId)
-        return;
-
+    normalizeSelection: function (startAttributeId) {
       var self = this;
 
       var selectedAttributes = self.getSelectedAttributes();
       if (!selectedAttributes || selectedAttributes.length === 0)
         return;
 
-      var attributeIndex = selectedAttributes.findIndex(function (selectedAttribute) {
-        return selectedAttribute.id === selectedAttributeId;
-      });
-
+      // if start attribute id is not set, then normalize selection by all attributes
+      var attributeIndex = 0;
+      if (startAttributeId) {
+        attributeIndex = $.map(selectedAttributes, function (attribute) {
+          return attribute.id;
+        }).indexOf(startAttributeId);
+      }
       if (attributeIndex !== -1 && attributeIndex < selectedAttributes.length - 1) {
-        var processedAttributes = selectedAttributes.slice(0, attributeIndex + 1);
-        var unprocessedAttributes = selectedAttributes.slice(attributeIndex + 1);
+        var startIndex = !startAttributeId ? attributeIndex : attributeIndex + 1;
+        var processedAttributes = selectedAttributes.slice(0, startIndex);
+        var unprocessedAttributes = selectedAttributes.slice(startIndex);
 
         $.each(unprocessedAttributes, function (index, unprocessedAttribute) {
           var combinations = self.getCombinationsByAttributeId(unprocessedAttribute.id, processedAttributes);
@@ -83,9 +84,10 @@
             var processedValues = [];
 
             $.each(combinations, function (index, combination) {
-              var attribute = combination.Attributes.find(function (attribute) {
+              var attribute = $.grep(combination.Attributes, function (attribute) {
                 return attribute.Id === unprocessedAttribute.id;
-              });
+              })[0];
+
               $.each(attribute.ValueIds, function (index, valueId) {
                 if (!combination.InStock) {
                   self.unselectValue(valueId);
@@ -137,13 +139,15 @@
             var processedValues = [];
 
             $.each(combinations, function (index, combination) {
-              var attribute = combination.Attributes.find(function (attribute) {
+              var attribute = $.grep(combination.Attributes, function (attribute) {
                 return attribute.Id === selectedAttribute.id;
-              });
+              })[0];
+
               $.each(attribute.ValueIds, function (index, valueId) {
-                var processedValue = processedValues.find(function (value) {
+                var processedValue = $.grep(processedValues, function (value) {
                   return value.id === valueId;
-                });
+                })[0];
+                
                 if (processedValue) {
                   if (!processedValue.inStock && combination.InStock) {
                     self.toggleAttributeValue(valueId, true);
@@ -159,16 +163,16 @@
             // toggle unprocessed attribute value
             var valueIds = self.getAttributeValueIds(selectedAttribute.id);
             $.each(valueIds, function (index, valueId) {
-              var processedValue = processedValues.find(function (value) {
+              var processedValue = $.grep(processedValues, function (value) {
                 return value.id === valueId;
-              });
+              })[0];
               if (!processedValue) {
                 self.toggleAttributeValue(valueId, false);
               }
             });
           } else {
             // toggle all attribute values
-            var valueIds = self.getAttributeValueIds(selectedAttribute.id);
+            valueIds = self.getAttributeValueIds(selectedAttribute.id);
             $.each(valueIds, function (index, valueId) {
               self.toggleAttributeValue(valueId, false);
             });
@@ -186,13 +190,13 @@
       };
 
       return $.grep(availableCombinations, function (combination) {
-        var found = combination.Attributes.find(function (attribute) {
+        var found = $.grep(combination.Attributes, function (attribute) {
           return attribute.Id === attributeId;
-        });
+        })[0];
 
         if (processedAttributes && processedAttributes.length > 0) {
           $.each(processedAttributes, function (index, processedAttribute) {
-            found = found && combination.Attributes.find(function (attribute) {
+            found = found && $.grep(combination.Attributes, function (attribute) {
               var attrbiuteIsFound = attribute.Id === processedAttribute.id;
 
               // exclude unselected attribute values
@@ -203,7 +207,7 @@
               }
 
               return attrbiuteIsFound;
-            });
+            })[0];
           });
         }
 
@@ -262,9 +266,9 @@
         } else if (displayType === 1) {
           $value.hide();
 
-          var $attr = $value.parent('[data-attr]');
+          $attr = $value.parent('[data-attr]');
           if (!$attr.is('select')) {
-            var visibleValues = $attr.find('[data-attr-value]:visible');
+            visibleValues = $attr.find('[data-attr-value]:visible');
             if (!visibleValues || visibleValues.length === 0) {
               $('#product_attribute_label_' + $attr.data('attr')).hide();
             }
@@ -272,7 +276,7 @@
             // it's workaround way, <option/> cannot be checked with ':visible'
             $value.attr('in-stock', 0);
 
-            var visibleOptions = $attr.find('[in-stock=1]');
+            visibleOptions = $attr.find('[in-stock=1]');
             if (!visibleOptions || visibleOptions.length === 0) {
               $attr.hide();
               $('#product_attribute_label_' + $attr.data('attr')).hide();
