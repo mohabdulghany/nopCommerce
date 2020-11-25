@@ -17580,6 +17580,9 @@
   <LocaleResource Name="Products.PriceRangeFrom">
     <Value>From {0}</Value>
   </LocaleResource>
+  <LocaleResource Name="Products.ProductAttributes.DropdownList.DefaultItem">
+    <Value>Please select</Value>
+  </LocaleResource>
   <LocaleResource Name="Products.ProductAttributes.PriceAdjustment">
     <Value>{0} [{1}{2}]</Value>
   </LocaleResource>

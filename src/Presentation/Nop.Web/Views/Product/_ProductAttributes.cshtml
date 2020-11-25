@@ -35,10 +35,7 @@
                         case AttributeControlType.DropdownList:
                             {
                                 <select data-attr="@(attribute.Id)" name="@(controlId)" id="@(controlId)" @(attribute.Values.Any(value => value.CustomerEntersQty) ? Html.Raw($"onchange=\"showHideDropdownQuantity('{controlId}')\"") : null)>
-                                    @if (!attribute.IsRequired)
-                                    {
-                                        <option data-attr-value="0" value="0">---</option>
-                                    }
+                                    <option data-attr-value="0" value="0">@T("Products.ProductAttributes.DropdownList.DefaultItem")</option>
                                     @foreach (var attributeValue in attribute.Values)
                                     {
                                         var attributeName = string.IsNullOrEmpty(attributeValue.PriceAdjustment) ?
